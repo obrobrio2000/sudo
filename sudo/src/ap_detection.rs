@@ -39,6 +39,21 @@ pub enum HelloAvailability {
     Unknown,
 }
 
+// Error message constants for better localization and maintenance
+const ERROR_NO_ADMIN_PRIVILEGES: &str = "You must be a member of the Administrators group to use sudo.";
+const ERROR_AP_WITHOUT_HELLO: &str = "❌ Administrator Protection requires Windows Hello\n\n\
+    To use sudo with Administrator Protection:\n\
+    1. Open Settings → Accounts → Sign-in options\n\
+    2. Set up Windows Hello (PIN, Face, or Fingerprint)\n\
+    3. Try sudo again\n\n\
+    Alternative: Disable Administrator Protection in Windows Security settings";
+const ERROR_BROKER_UNAVAILABLE: &str = "⚠️  Administrator Protection is enabled but the elevation broker service is not available.\n\n\
+    To fix this:\n\
+    1. Run: sc start SudoElevationBroker\n\
+    2. Or reinstall sudo: winget install Microsoft.Sudo\n\n\
+    If the problem persists, check Windows Event Logs for errors.";
+const ERROR_UNKNOWN_ENVIRONMENT: &str = "Unable to determine elevation capabilities. Please check system configuration.";
+
 /// Comprehensive system elevation capability information
 #[derive(Debug, Clone)]
 pub struct ElevationCapabilities {
@@ -96,29 +111,16 @@ impl ElevationCapabilities {
         
         match self.environment {
             ElevationEnvironment::NoAdminPrivileges => {
-                Some("You must be a member of the Administrators group to use sudo.".to_string())
+                Some(ERROR_NO_ADMIN_PRIVILEGES.to_string())
             }
             ElevationEnvironment::AdminProtectionWithoutHello => {
-                Some(format!(
-                    "❌ Administrator Protection requires Windows Hello\n\n\
-                    To use sudo with Administrator Protection:\n\
-                    1. Open Settings → Accounts → Sign-in options\n\
-                    2. Set up Windows Hello (PIN, Face, or Fingerprint)\n\
-                    3. Try sudo again\n\n\
-                    Alternative: Disable Administrator Protection in Windows Security settings"
-                ))
+                Some(ERROR_AP_WITHOUT_HELLO.to_string())
             }
             ElevationEnvironment::AdminProtectionWithHello if !self.broker_service_available => {
-                Some(format!(
-                    "⚠️  Administrator Protection is enabled but the elevation broker service is not available.\n\n\
-                    To fix this:\n\
-                    1. Run: sc start SudoElevationBroker\n\
-                    2. Or reinstall sudo: winget install Microsoft.Sudo\n\n\
-                    If the problem persists, check Windows Event Logs for errors."
-                ))
+                Some(ERROR_BROKER_UNAVAILABLE.to_string())
             }
             ElevationEnvironment::Unknown => {
-                Some("Unable to determine elevation capabilities. Please check system configuration.".to_string())
+                Some(ERROR_UNKNOWN_ENVIRONMENT.to_string())
             }
             _ => None,
         }

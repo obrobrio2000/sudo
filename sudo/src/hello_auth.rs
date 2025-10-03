@@ -7,11 +7,14 @@ use anyhow::{anyhow, Result};
 use std::ffi::c_void;
 use windows::{
     core::*,
-    Foundation::IAsyncOperation,
+    Foundation::*,
     Security::Credentials::UI::*,
     Win32::Foundation::*,
+    Win32::Security::*,
     Win32::System::Com::*,
+    Win32::System::Threading::*,
 };
+use windows_registry::Key;
 
 /// Windows Hello authenticator
 pub struct HelloAuthenticator {

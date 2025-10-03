@@ -242,7 +242,9 @@ impl Drop for BrokerClient {
 pub fn elevate_via_broker(
     command: &str,
     arguments: &[String],
+    working_directory: Option<&str>,
     execution_mode: ExecutionMode,
+    environment: &[(String, String)],
     auth_token: Vec<u8>,
 ) -> Result<ElevationResponse> {
     let mut client = BrokerClient::new();
@@ -262,10 +264,11 @@ pub fn elevate_via_broker(
     );
     request.execution_mode = execution_mode;
     request.auth_token = auth_token;
+    request.working_directory = working_directory.map(|s| s.to_string());
     
-    // Get current working directory
-    if let Ok(cwd) = std::env::current_dir() {
-        request.working_directory = Some(cwd.to_string_lossy().to_string());
+    // Add environment variables
+    for (key, value) in environment {
+        request.environment.insert(key.clone(), value.clone());
     }
     
     // Send elevation request

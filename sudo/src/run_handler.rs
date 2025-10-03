@@ -477,9 +477,9 @@ fn use_ap_broker_elevation(req: &ElevateRequest, copy_env: bool) -> Result<i32> 
     let response = match broker_client::elevate_via_broker(
         &req.application,
         &req.args,
-        &req.target_dir,
+        req.target_dir.as_deref(),
         execution_mode,
-        env_vars,
+        &env_vars,
         auth_token,
     ) {
         Ok(resp) => {

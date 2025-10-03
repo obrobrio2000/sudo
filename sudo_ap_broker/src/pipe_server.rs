@@ -1,10 +1,11 @@
-// use anyhow::{anyhow, Context, Result};
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
 };
 use std::thread;
 use std::time::Duration;
+
+use anyhow::{anyhow, Context, Result};
 use tracing::{debug, error, info, warn};
 use windows::core::PCWSTR;
 use windows::Win32::{
@@ -20,30 +21,13 @@ use windows::Win32::{
         PIPE_ACCESS_DUPLEX, PIPE_READMODE_MESSAGE, PIPE_TYPE_MESSAGE, PIPE_UNLIMITED_INSTANCES, PIPE_WAIT,
     },
     System::IO::OVERLAPPED,
-};Implementation
-// Listens for client connections and handles elevation requests
-
-use anyhow::{anyhow, Context, Result};
-use std::sync::{
-    atomic::{AtomicBool, Ordering},
-    Arc,
-};
-use std::thread;
-use std::time::Duration;
-use tracing::{debug, error, info, warn};
-use windows::core::PCWSTR;
-use windows::Win32::{
-    Foundation::{CloseHandle, HANDLE, ERROR_PIPE_CONNECTED, ERROR_IO_PENDING},
-    Storage::FileSystem::{ReadFile, WriteFile},
-    System::Pipes::{
-        ConnectNamedPipe, CreateNamedPipeW, DisconnectNamedPipe, PIPE_ACCESS_DUPLEX,
-        PIPE_READMODE_MESSAGE, PIPE_TYPE_MESSAGE, PIPE_UNLIMITED_INSTANCES, PIPE_WAIT,
-    },
-    System::IO::OVERLAPPED,
 };
 
-use crate::elevation::ElevationHandler;
 use crate::audit_logger::AuditLogger;
+use crate::broker_protocol::MAX_MESSAGE_SIZE;
+use crate::elevation::ElevationHandler;
+
+// Listens for client connections and handles elevation requests
 
 /// RAII guard to ensure RevertToSelf is called
 struct RevertGuard;
@@ -321,9 +305,9 @@ impl PipeServer {
         }
         
         let length = u32::from_le_bytes(length_buf) as usize;
-        
+
         // Validate message size
-        if length > sudo::broker_protocol::MAX_MESSAGE_SIZE {
+        if length > MAX_MESSAGE_SIZE {
             return Err(anyhow!("Message too large: {} bytes", length));
         }
         
