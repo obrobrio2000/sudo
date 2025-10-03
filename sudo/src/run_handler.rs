@@ -500,7 +500,7 @@ fn use_ap_broker_elevation(req: &ElevateRequest, copy_env: bool) -> Result<i32> 
     match response.status {
         StatusCode::Success => {
             tracing::trace_log_message("Elevation completed successfully");
-            Ok(response.exit_code)
+            Ok(response.exit_code.unwrap_or(0))
         }
         StatusCode::AuthenticationFailed => {
             eprintln!("Error: Authentication failed. Please try again.");
