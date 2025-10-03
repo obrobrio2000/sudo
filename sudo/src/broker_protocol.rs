@@ -167,6 +167,8 @@ pub enum StatusCode {
     APNotEnabled = 10,
     
     /// General error
+    /// 999 is used as a catch-all error code, distinct from specific errors above.
+    /// This ensures it does not overlap with any future specific error codes.
     Error = 999,
 }
 
